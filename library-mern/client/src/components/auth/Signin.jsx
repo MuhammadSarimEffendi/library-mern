@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import  { loginUser } from '@/features/auth/authThunks';
+import { toast } from 'react-toastify'; // Import toast from react-toastify
+import { loginUser } from '@/features/auth/authThunks';
 
 export default function Signin() {
     const [username, setUsername] = useState('');
@@ -13,18 +14,28 @@ export default function Signin() {
 
     const { isAuthenticated, error } = useSelector((state) => state.auth);
 
-    if (isAuthenticated) {
-        navigate('/', { replace: true });
-    }
+    // Show toast notification when there's an error
+    useEffect(() => {
+        if (error) {
+            toast.error(error); // Show error notification
+        }
+    }, [error]);
+
+    // Navigate away when logged in
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate('/', { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
 
     const validateInputs = () => {
         const validationErrors = {};
 
         if (!username.trim()) {
-            validationErrors.username = "Username is required";
+            validationErrors.username = 'Username is required';
         }
         if (!password.trim()) {
-            validationErrors.password = "Password is required";
+            validationErrors.password = 'Password is required';
         }
 
         return validationErrors;
@@ -80,7 +91,6 @@ export default function Signin() {
                                 />
                                 {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
                             </div>
-                            {error && <p className="text-red-500">{error}</p>}
                             <button
                                 type="submit"
                                 className="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"

@@ -8,16 +8,16 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { fetchBooksByAuthor, addBook, updateBook, deleteBook } from "@/features/books/bookThunks";
-import { logout } from "@/features/auth/authSlice";
+import { fetchBooksByAuthor, addBook, updateBook, deleteBook } from '@/features/books/bookThunks';
+import { logout } from '@/features/auth/authSlice';
 
 export default function BookManagement() {
     const dispatch = useDispatch();
 
     // Selectors to access state
-    const books = useSelector((state) => state.books.items);
-    const loading = useSelector((state) => state.books.loading);
-    const error = useSelector((state) => state.books.error);
+    const authoredBooks = useSelector((state) => state.userBooks.authoredBooks); // Use authoredBooks
+    const loading = useSelector((state) => state.userBooks.loading);
+    const error = useSelector((state) => state.userBooks.error);
     const user = useSelector((state) => state.auth.user);
     const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
@@ -27,18 +27,20 @@ export default function BookManagement() {
     const [showBookForm, setShowBookForm] = useState(false);
     const [currentBook, setCurrentBook] = useState(null);
 
+    // Fetch the books authored by the current user
     useEffect(() => {
-        if (isAuthenticated  && user._id) {
-
-            console.log("Fetching books for user ID:", user._id);
-            dispatch(fetchBooksByAuthor(user._id));
+        if (isAuthenticated && user?.id) {  // Fix: use user.id
+            console.log("User is authenticated, fetching books for user ID:", user.id);
+            dispatch(fetchBooksByAuthor(user.id));  // Fix: pass user.id to fetchBooksByAuthor
+        } else {
+            console.log("User is not authenticated or missing user.id");
         }
-    }, [dispatch, isAuthenticated]);
+    }, [dispatch, isAuthenticated, user?.id]); // Fix: dependency on user.id
 
     // Log the books data whenever it changes
     useEffect(() => {
-        console.log("Books state updated:", books);
-    }, [books]);
+        console.log("Authored Books state updated:", authoredBooks);
+    }, [authoredBooks]);
 
     // Log loading and error states
     useEffect(() => {
@@ -51,26 +53,29 @@ export default function BookManagement() {
     }, [loading, error]);
 
     const handleDeleteBook = (book) => {
+        console.log("Delete button clicked for book:", book);
         setBookToDelete(book);
         setShowModal(true);
     };
 
     const confirmDeleteBook = () => {
         if (bookToDelete) {
-            console.log("Deleting book:", bookToDelete);
+            console.log("Confirming delete for book:", bookToDelete);
             dispatch(deleteBook(bookToDelete._id));
             setShowModal(false);
+        } else {
+            console.log("No book to delete");
         }
     };
 
     const handleEditBook = (book) => {
-        console.log("Editing book:", book);
+        console.log("Edit button clicked for book:", book);
         setCurrentBook(book);
         setShowBookForm(true);
     };
 
     const handleAddBook = () => {
-        console.log("Adding new book");
+        console.log("Add book button clicked");
         setCurrentBook(null);
         setShowBookForm(true);
     };
@@ -78,8 +83,10 @@ export default function BookManagement() {
     const saveBook = (bookData) => {
         console.log("Saving book data:", bookData);
         if (currentBook) {
+            console.log("Updating existing book:", bookData);
             dispatch(updateBook(bookData));
         } else {
+            console.log("Adding new book:", bookData);
             dispatch(addBook(bookData));
         }
         setShowBookForm(false);
@@ -91,6 +98,7 @@ export default function BookManagement() {
     };
 
     if (!isAuthenticated) {
+        console.log("User is not authenticated, redirecting to login");
         return (
             <div className="flex items-center justify-center h-screen">
                 <p>Please log in to manage your books.</p>
@@ -110,10 +118,10 @@ export default function BookManagement() {
             <main className="flex-1 p-6 grid gap-6">
                 {loading && <p>Loading books...</p>}
                 {error && <p className="text-red-500">Error: {error}</p>}
-                {books.length === 0 && !loading ? (
+                {authoredBooks.length === 0 && !loading ? (
                     <p>No books available.</p>
                 ) : (
-                    books.map((book) => (
+                    authoredBooks.map((book) => (
                         <Card key={book._id} className="flex flex-col md:flex-row">
                             <div className="flex-1">
                                 <CardHeader>
@@ -182,7 +190,7 @@ export default function BookManagement() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete Book</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to delete "{bookToDelete?.title}"?
+                            Are you sure you want to delete {bookToDelete?.title}?
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -208,7 +216,7 @@ export default function BookManagement() {
                             const bookData = {
                                 id: currentBook?._id,
                                 title: form.title.value,
-                                author: { username: user.username, _id: user._id }, // Save the author's details
+                                author: { username: user.username, id: user.id }, // Use user.id
                                 publicationDate: form.publicationDate.value,
                                 description: form.description.value,
                                 price: parseFloat(form.price.value),
@@ -217,6 +225,7 @@ export default function BookManagement() {
                                 availableForRental: form.availableForRental.value === 'yes',
                                 imageUrl: form.imageUrl.value,
                             };
+                            console.log("Form submitted with book data:", bookData);
                             saveBook(bookData);
                         }}
                         className="grid gap-4 py-4"
@@ -309,7 +318,7 @@ export default function BookManagement() {
     );
 }
 
-// Icon Components (Ensure these are exported correctly)
+// Icon Components (CheckIcon and XIcon are used for displaying availability status)
 function CheckIcon(props) {
     return (
         <svg

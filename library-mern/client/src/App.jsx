@@ -21,6 +21,8 @@ import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import Cancel from './pages/payment/Cancel';
 import Success from './pages/payment/Success';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const stripePromise = loadStripe("pk_test_51PvfVkKwq8I6LPxO5MOQxZniyTx4gsrFnDnhEpol3y8y6QKpgEau5xXJv3Fzr9zwLHIJ5qdlRMc2mgJPOhhY3azY00XmobLXpy")
 // console.log(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
@@ -31,6 +33,8 @@ export default function App() {
     <Router>
       <Header />
       {/* Wrap the relevant routes with CommentsProvider outside the Routes */}
+
+      <ToastContainer /> {/* Toast notifications container */}
       <CommentsProvider>
         <Routes>
           <Route path="/" element={<ProtectedRoute element={Home} />} />

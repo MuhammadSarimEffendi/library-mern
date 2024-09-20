@@ -36,6 +36,7 @@ export const fetchBooksByAuthor = createAsyncThunk(
     async (authorId, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.get(`/book/author/${authorId}`);
+            console.log("books fetcheddddd",response.data);
             return response.data;
         } catch (error) {
             return rejectWithValue(

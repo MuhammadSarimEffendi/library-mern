@@ -23,21 +23,17 @@ const BookIcon = (props) => (
 
 const BookList = () => {
     const dispatch = useDispatch();
-    const { ownedBooks, loading, error } = useSelector((state) => state.books); 
+    const { purchasedBooks = [], rentedBooks = [], loading, error } = useSelector((state) => state.userBooks) || {}; // Provide default empty arrays
 
     useEffect(() => {
-        dispatch(fetchOwnedBooks()); 
+        dispatch(fetchOwnedBooks());
     }, [dispatch]);
-
-    console.log('Owned Books from Redux:', ownedBooks);
-    console.log('Loading state:', loading);
-    console.log('Error state:', error);
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
 
     // Combine purchased and rented books
-    const books = [...(ownedBooks.purchasedBooks || []), ...(ownedBooks.rentedBooks || [])].sort(
+    const books = [...purchasedBooks, ...rentedBooks].sort(
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
     );
 
@@ -52,7 +48,7 @@ const BookList = () => {
             </div>
             <div className="grid gap-4">
                 {books.map((book, index) => (
-                    <a key={index} href="#" className="no-underline ">
+                    <a key={index} href="#" className="no-underline">
                         <Card className="pt-9 pl-5 pr-5 pb-5 items-center align-middle">
                             <CardContent className="grid grid-cols-[auto_1fr_auto] items-center justify-center gap-4">
                                 <div className="flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground rounded-full">

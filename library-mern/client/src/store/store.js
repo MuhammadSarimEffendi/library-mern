@@ -4,6 +4,7 @@ import userReducer from'@/features/users/userSlice';
 import authReducer from '@/features/auth/authSlice';
 import commentReducer from '@/features/comments/commentSlice';
 import paymentReducer from '@/features/payments/paymentSlice';
+import userBookReducer from '@/features/books/userBookSlice';
 
 const store = configureStore({
     reducer: {
@@ -12,6 +13,7 @@ const store = configureStore({
         books: bookReducer, 
         comments: commentReducer,
         payments: paymentReducer,
+        userBooks: userBookReducer,
     },
 });
 

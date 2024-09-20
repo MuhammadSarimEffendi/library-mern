@@ -5,9 +5,11 @@ import './index.css'
 import store from './store/store.js'
 import {Provider} from 'react-redux'
 import { AuthProvider } from './context/AuthContext.jsx'
+import { ToastContainer } from 'react-toastify'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
+
     <AuthProvider>
 
     <Provider store={store}>
@@ -15,5 +17,6 @@ createRoot(document.getElementById('root')).render(
       <App />
     </Provider>
     </AuthProvider>
+
   </StrictMode>,
 )
