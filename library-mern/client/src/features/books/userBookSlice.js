@@ -1,10 +1,10 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { fetchBooksByAuthor, fetchPurchasedBookContent } from '@/features/books/bookThunks';
+import { fetchBooksByAuthor, fetchOwnedBooks, fetchPurchasedBookContent } from '@/features/books/bookThunks';
 
 const initialState = {
     authoredBooks: [],  // List of books authored by the current user
-    purchasedBooks: [],  // Separate field for purchased books
-    rentedBooks: [],     // Separate field for rented books
+    purchasedBooks: [],  // List of purchased books
+    rentedBooks: [],     // List of rented books
     purchasedBookContent: null,
     loading: false,
     error: null,
@@ -16,13 +16,13 @@ const userBooksSlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder
-            // Fetch books by the current author (user)
+            // Fetch books authored by the current user
             .addCase(fetchBooksByAuthor.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
             .addCase(fetchBooksByAuthor.fulfilled, (state, action) => {
-                state.authoredBooks = action.payload || [];  // API should return books by the user
+                state.authoredBooks = action.payload || [];  // API should return books authored by the user
                 state.loading = false;
             })
             .addCase(fetchBooksByAuthor.rejected, (state, action) => {
@@ -31,6 +31,21 @@ const userBooksSlice = createSlice({
             })
 
             // Fetch owned books (purchased/rented)
+            .addCase(fetchOwnedBooks.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchOwnedBooks.fulfilled, (state, action) => {
+                state.purchasedBooks = action.payload.purchasedBooks || [];  // Ensure payload structure matches API
+                state.rentedBooks = action.payload.rentedBooks || [];  // Ensure payload structure matches API
+                state.loading = false;
+            })
+            .addCase(fetchOwnedBooks.rejected, (state, action) => {
+                state.error = action.payload || action.error.message;
+                state.loading = false;
+            })
+
+            // Access purchased book content
             .addCase(fetchPurchasedBookContent.pending, (state) => {
                 state.loading = true;
                 state.error = null;

@@ -1,5 +1,3 @@
-// src/components/admin/ManageBooks.jsx
-
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -7,7 +5,7 @@ import {
     addBook,
     updateBook,
     deleteBook,
-} from "@/features/books/bookThunks"; 
+} from "@/features/books/bookThunks";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -40,17 +38,20 @@ import {
     PaginationEllipsis,
 } from "@/components/ui/pagination";
 
-export default function BookManagement() {
+export default function ManageBooks() {
     const dispatch = useDispatch();
 
+    // Destructure books, loading, error, etc. from Redux store
     const { items: books = [], totalBooks, currentPage, totalPages, loading, error } = useSelector(
         (state) => state.books
     );
 
+    // State for modal display and selected book
     const [showModal, setShowModal] = useState(false);
     const [selectedBook, setSelectedBook] = useState(null);
-    const booksPerPage = 5; 
+    const booksPerPage = 5;
 
+    // Fetch books when the component mounts or currentPage changes
     useEffect(() => {
         dispatch(fetchBooks({ page: currentPage, limit: booksPerPage }))
             .unwrap()
@@ -62,27 +63,43 @@ export default function BookManagement() {
             });
     }, [dispatch, currentPage]);
 
+    // Handle book editing
     const handleEdit = (book) => {
         setSelectedBook(book);
         setShowModal(true);
     };
 
+    // Handle book deletion
     const handleDelete = (id) => {
-        dispatch(deleteBook(id));
+        dispatch(deleteBook(id))
+            .unwrap()
+            .then(() => {
+                console.log("Book deleted successfully");
+            })
+            .catch((error) => {
+                console.error("Error deleting book:", error);
+            });
     };
 
+    // Handle form submission (for adding or updating books)
     const handleSubmit = (book) => {
         if (selectedBook) {
-            dispatch(updateBook(book));
+            dispatch(updateBook(book))
+                .unwrap()
+                .then(() => console.log("Book updated successfully"))
+                .catch((error) => console.error("Error updating book:", error));
         } else {
-            dispatch(addBook(book));
+            dispatch(addBook(book))
+                .unwrap()
+                .then(() => console.log("Book added successfully"))
+                .catch((error) => console.error("Error adding book:", error));
         }
         setShowModal(false);
         setSelectedBook(null);
     };
 
+    // Handle pagination
     const handlePageChange = (pageNumber) => {
-        setSelectedBook(null); 
         dispatch(fetchBooks({ page: pageNumber, limit: booksPerPage }))
             .unwrap()
             .then((res) => {
@@ -157,9 +174,6 @@ export default function BookManagement() {
                                                 >
                                                     Delete
                                                 </Button>
-                                                <Button variant="outline" size="sm">
-                                                    View
-                                                </Button>
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -171,6 +185,7 @@ export default function BookManagement() {
                     )}
                 </div>
 
+                {/* Pagination */}
                 <div className="mt-4 flex justify-center">
                     <Pagination>
                         <PaginationContent>
@@ -214,6 +229,8 @@ export default function BookManagement() {
                     </Pagination>
                 </div>
             </main>
+
+            {/* Add/Edit Book Dialog */}
             <Dialog open={showModal} onOpenChange={setShowModal}>
                 <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-auto">
                     <DialogHeader>
@@ -229,7 +246,7 @@ export default function BookManagement() {
                             e.preventDefault();
                             const formData = new FormData(e.target);
                             const book = {
-                                id: selectedBook?.id || selectedBook?._id, 
+                                id: selectedBook?.id || selectedBook?._id,
                                 title: formData.get("title"),
                                 author: formData.get("author"),
                                 description: formData.get("description"),
@@ -329,11 +346,6 @@ export default function BookManagement() {
                     </form>
                 </DialogContent>
             </Dialog>
-            <footer className="bg-muted text-muted-foreground py-4 px-6">
-                <div className="flex justify-between items-center">
-                    <p>&copy; 2023 Book Management. All rights reserved.</p>
-                </div>
-            </footer>
         </div>
     );
 }

@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { fetchBooksByAuthor, addBook, updateBook, deleteBook } from '@/features/books/bookThunks';
-import { logout } from '@/features/auth/authSlice';
 
 export default function BookManagement() {
     const dispatch = useDispatch();
@@ -92,10 +91,7 @@ export default function BookManagement() {
         setShowBookForm(false);
     };
 
-    const handleLogout = () => {
-        console.log("Logging out");
-        dispatch(logout());
-    };
+    
 
     if (!isAuthenticated) {
         console.log("User is not authenticated, redirecting to login");
@@ -112,7 +108,6 @@ export default function BookManagement() {
                 <h1 className="text-2xl font-bold">My Publications</h1>
                 <div className="flex items-center gap-4">
                     <Button onClick={handleAddBook}>Add Book</Button>
-                    <Button variant="outline" onClick={handleLogout}>Logout</Button>
                 </div>
             </header>
             <main className="flex-1 p-6 grid gap-6">
