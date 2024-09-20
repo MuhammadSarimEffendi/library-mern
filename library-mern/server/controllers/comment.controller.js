@@ -6,7 +6,6 @@ exports.createComment = asyncHandler(async (req, res) => {
     try {
         const { description, rating } = req.body;
 
-        // Validate rating
         if (!rating || rating < 1 || rating > 5) {
             return res.status(400).json({ error: "Rating must be between 1 and 5" });
         }
@@ -99,7 +98,6 @@ exports.deleteCommentById = asyncHandler(async (req, res) => {
         }
 
         if (req.user.role.includes('admin') || comment.author.toString() === req.user._id.toString()) {
-            // Remove the comment from the book's comments array
             await Book.findByIdAndUpdate(comment.book, {
                 $pull: { comments: comment._id }
             });

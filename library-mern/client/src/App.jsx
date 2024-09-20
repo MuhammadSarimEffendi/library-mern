@@ -16,6 +16,7 @@ import BookSearch from './components/book/BookSearch';
 import BookUpload from './components/book/BookUpload';
 import UserProfile from './components/profile/UserProfile';
 import ProtectedRoute from './routes/ProtectedRoute';
+import BookAnalytics from './components/book/BookAnalytics';
 import { CommentsProvider } from './context/CommentsContext';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
@@ -51,6 +52,7 @@ export default function App() {
           <Route path="/book-management" element={<ProtectedRoute element={BookManagement} roles={['admin','author']} />} />
           <Route path="/book-search" element={<ProtectedRoute element={BookSearch} />} />
           <Route path="/book-upload" element={<ProtectedRoute element={BookUpload} roles={['author', 'admin']} />} />
+          <Route path="/book-analytics" element={<ProtectedRoute element={BookAnalytics} roles={['admin','author']} />} />
 
           {/* Payment routes */}
           <Route path="/payment/success" element={<ProtectedRoute element={Success}/>} />

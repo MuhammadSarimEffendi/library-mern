@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { toast } from 'react-toastify'; // Import toast from react-toastify
+import { toast } from 'react-toastify'; 
 import { loginUser } from '@/features/auth/authThunks';
 
 export default function Signin() {
@@ -14,14 +14,12 @@ export default function Signin() {
 
     const { isAuthenticated, error } = useSelector((state) => state.auth);
 
-    // Show toast notification when there's an error
     useEffect(() => {
         if (error) {
-            toast.error(error); // Show error notification
+            toast.error(error); 
         }
     }, [error]);
 
-    // Navigate away when logged in
     useEffect(() => {
         if (isAuthenticated) {
             navigate('/', { replace: true });

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchOwnedBooks } from '@/features/books/bookThunks'; 
+import { fetchOwnedBooks } from '@/features/books/bookThunks';
 
 const BookIcon = (props) => (
     <svg
@@ -32,12 +32,11 @@ const BookList = () => {
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
 
-    // Combine purchased and rented books
+    // Combine and sort purchased and rented books
     const books = [...purchasedBooks, ...rentedBooks].sort(
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
     );
 
-    // Log the combined and sorted book list
     console.log('Combined and sorted book list:', books);
 
     return (
@@ -57,6 +56,12 @@ const BookList = () => {
                                 <div className="grid gap-1">
                                     <h3 className="font-semibold">{book.title}</h3>
                                     <p className="text-muted-foreground">by {book.author}</p>
+                                    {/* Display the rental end date if the book is rented */}
+                                    {book.type === 'Rented' && book.rentalEndDate && (
+                                        <p className="text-sm text-muted-foreground">
+                                            Rental ends on: {new Date(book.rentalEndDate).toLocaleDateString()}
+                                        </p>
+                                    )}
                                 </div>
                                 <Badge variant="outline" className="px-2 py-1 text-xs">
                                     {book.type}

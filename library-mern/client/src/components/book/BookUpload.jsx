@@ -82,9 +82,7 @@ export default function BookUpload() {
 
         try {
             await dispatch(addBook(bookData)).unwrap();
-            // Show success notification
             toast.success('Book uploaded successfully!');
-            // Clear the form data
             setFormData({
                 title: "",
                 description: "",
@@ -218,8 +216,6 @@ export default function BookUpload() {
                         </form>
                     </CardContent>
                 </Card>
-
-                {/* Toast container to show notifications */}
                 <ToastContainer />
             </div>
         </section>

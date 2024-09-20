@@ -1,5 +1,3 @@
-// src/features/users/userSlice.js
-
 import { createSlice } from '@reduxjs/toolkit';
 import {
     fetchUsers,

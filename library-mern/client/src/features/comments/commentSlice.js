@@ -17,7 +17,6 @@ const commentSlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder
-            // Fetch all comments
             .addCase(fetchAllComments.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -31,12 +30,10 @@ const commentSlice = createSlice({
                 state.loading = false;
             })
 
-            // Add new comment
             .addCase(addComment.fulfilled, (state, action) => {
                 state.items.push(action.payload);
             })
 
-            // Update existing comment
             .addCase(updateComment.fulfilled, (state, action) => {
                 const index = state.items.findIndex(
                     (comment) => comment.id === action.payload.id || comment._id === action.payload._id
@@ -46,7 +43,6 @@ const commentSlice = createSlice({
                 }
             })
 
-            // Delete a comment
             .addCase(deleteComment.fulfilled, (state, action) => {
                 state.items = state.items.filter(
                     (comment) => comment.id !== action.payload && comment._id !== action.payload

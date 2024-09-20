@@ -1,12 +1,11 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '@/api/axiosInstance';
 
-// Fetch all comments
 export const fetchAllComments = createAsyncThunk(
     "comments/fetchAllComments",
     async (_, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.get(`/comment`); // Assuming /comment endpoint returns all comments
+            const response = await axiosInstance.get(`/comment`);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data || "Error fetching all comments");
@@ -14,7 +13,6 @@ export const fetchAllComments = createAsyncThunk(
     }
 );
 
-// Add a new comment
 export const addComment = createAsyncThunk(
     "comments/addComment",
     async ({ bookId, commentData }, { rejectWithValue }) => {
@@ -27,7 +25,6 @@ export const addComment = createAsyncThunk(
     }
 );
 
-// Update an existing comment
 export const updateComment = createAsyncThunk(
     "comments/updateComment",
     async ({ commentId, commentData }, { rejectWithValue }) => {
@@ -40,7 +37,6 @@ export const updateComment = createAsyncThunk(
     }
 );
 
-// Delete a comment
 export const deleteComment = createAsyncThunk(
     "comments/deleteComment",
     async (commentId, { rejectWithValue }) => {

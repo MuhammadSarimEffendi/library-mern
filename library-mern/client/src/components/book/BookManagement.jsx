@@ -1,20 +1,53 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+    CardContent,
+    CardFooter,
+} from "@/components/ui/card";
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogCancel,
+    AlertDialogAction,
+} from "@/components/ui/alert-dialog";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { fetchBooksByAuthor, addBook, updateBook, deleteBook } from '@/features/books/bookThunks';
+import {
+    Select,
+    SelectTrigger,
+    SelectValue,
+    SelectContent,
+    SelectItem,
+} from "@/components/ui/select";
+import {
+    fetchBooksByAuthor,
+    addBook,
+    updateBook,
+    deleteBook,
+} from "@/features/books/bookThunks";
 
 export default function BookManagement() {
     const dispatch = useDispatch();
 
-    // Selectors to access state
-    const authoredBooks = useSelector((state) => state.userBooks.authoredBooks); // Use authoredBooks
+    const authoredBooks = useSelector((state) => state.userBooks.authoredBooks);
     const loading = useSelector((state) => state.userBooks.loading);
     const error = useSelector((state) => state.userBooks.error);
     const user = useSelector((state) => state.auth.user);
@@ -26,71 +59,58 @@ export default function BookManagement() {
     const [currentBook, setCurrentBook] = useState(null);
 
     useEffect(() => {
-        if (isAuthenticated && user?.id) {  // Fix: use user.id
-            console.log("User is authenticated, fetching books for user ID:", user.id);
-            dispatch(fetchBooksByAuthor(user.id)); 
-        } else {
-            console.log("User is not authenticated or missing user.id");
+        if (isAuthenticated && user?.id) {
+            dispatch(fetchBooksByAuthor(user.id));
         }
-    }, [dispatch, isAuthenticated, user?.id]); 
-
-    useEffect(() => {
-        console.log("Authored Books state updated:", authoredBooks);
-    }, [authoredBooks]);
-
-    useEffect(() => {
-        if (loading) {
-            console.log("Loading books...");
-        }
-        if (error) {
-            console.error("Error fetching books:", error);
-        }
-    }, [loading, error]);
+    }, [dispatch, isAuthenticated, user?.id]);
 
     const handleDeleteBook = (book) => {
-        console.log("Delete button clicked for book:", book);
         setBookToDelete(book);
         setShowModal(true);
     };
 
     const confirmDeleteBook = () => {
         if (bookToDelete) {
-            console.log("Confirming delete for book:", bookToDelete);
-            dispatch(deleteBook(bookToDelete._id));
+            dispatch(deleteBook(bookToDelete._id))
+                .unwrap()
+                .then(() => {
+                    dispatch(fetchBooksByAuthor(user.id));
+                })
+                .catch((error) => console.error("Error deleting book:", error));
             setShowModal(false);
-        } else {
-            console.log("No book to delete");
         }
     };
 
     const handleEditBook = (book) => {
-        console.log("Edit button clicked for book:", book);
         setCurrentBook(book);
         setShowBookForm(true);
     };
 
     const handleAddBook = () => {
-        console.log("Add book button clicked");
         setCurrentBook(null);
         setShowBookForm(true);
     };
 
     const saveBook = (bookData) => {
-        console.log("Saving book data:", bookData);
         if (currentBook) {
-            console.log("Updating existing book:", bookData);
-            dispatch(updateBook(bookData));
+            dispatch(updateBook(bookData))
+                .unwrap()
+                .then(() => {
+                    dispatch(fetchBooksByAuthor(user.id));
+                })
+                .catch((error) => console.error("Error updating book:", error));
         } else {
-            console.log("Adding new book:", bookData);
-            dispatch(addBook(bookData));
+            dispatch(addBook(bookData))
+                .unwrap()
+                .then(() => {
+                    dispatch(fetchBooksByAuthor(user.id));
+                })
+                .catch((error) => console.error("Error adding book:", error));
         }
         setShowBookForm(false);
     };
 
-    
-
     if (!isAuthenticated) {
-        console.log("User is not authenticated, redirecting to login");
         return (
             <div className="flex items-center justify-center h-screen">
                 <p>Please log in to manage your books.</p>
@@ -118,9 +138,16 @@ export default function BookManagement() {
                                 <CardHeader>
                                     <CardTitle>{book.title}</CardTitle>
                                     <CardDescription>Author: {book.author.username}</CardDescription>
-                                    <CardDescription>Published: {new Date(book.publicationDate).toLocaleDateString()}</CardDescription>
+                                    <CardDescription>
+                                        Published:{" "}
+                                        {book.publishedDate
+                                            ? new Date(book.publishedDate).toLocaleDateString()
+                                            : "No publication date available"}
+                                    </CardDescription>
                                     <CardDescription>Price: ${book.price.toFixed(2)}</CardDescription>
-                                    <CardDescription>Rental Price: ${book.rentalPrice.toFixed(2)}</CardDescription>
+                                    <CardDescription>
+                                        Rental Price: ${book.rentalPrice.toFixed(2)}
+                                    </CardDescription>
                                     <div className="flex items-center gap-2">
                                         {book.availableForPurchase ? (
                                             <div className="flex items-center gap-2">
@@ -155,14 +182,20 @@ export default function BookManagement() {
                                     <Button variant="outline" onClick={() => handleEditBook(book)}>
                                         Edit
                                     </Button>
-                                    <Button variant="destructive" onClick={() => handleDeleteBook(book)}>
+                                    <Button
+                                        variant="destructive"
+                                        onClick={() => handleDeleteBook(book)}
+                                    >
                                         Delete
                                     </Button>
                                 </CardFooter>
                             </div>
                             <div className="mt-4 md:mt-0 md:ml-6 md:w-48">
                                 <img
-                                    src={book.imageUrl || "https://m.media-amazon.com/images/I/416V8IMmH7L._SX342_SY445_.jpg"}
+                                    src={
+                                        book.imageUrl ||
+                                        "https://m.media-amazon.com/images/I/416V8IMmH7L._SX342_SY445_.jpg"
+                                    }
                                     alt={`Cover of ${book.title}`}
                                     width={192}
                                     height={256}
@@ -192,7 +225,11 @@ export default function BookManagement() {
             </AlertDialog>
 
             {/* Add/Edit Book Dialog */}
-            <Dialog open={showBookForm} onOpenChange={setShowBookForm} className="max-h-[90vh] overflow-auto">
+            <Dialog
+                open={showBookForm}
+                onOpenChange={setShowBookForm}
+                className="max-h-[90vh] overflow-auto"
+            >
                 <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-auto">
                     <DialogHeader>
                         <DialogTitle>{currentBook ? "Edit Book" : "Add Book"}</DialogTitle>
@@ -206,72 +243,76 @@ export default function BookManagement() {
                             const form = e.target;
                             const bookData = {
                                 id: currentBook?._id,
-                                title: form.title.value,
-                                author: { username: user.username, id: user.id }, // Use user.id
-                                publicationDate: form.publicationDate.value,
-                                description: form.description.value,
-                                price: parseFloat(form.price.value),
-                                rentalPrice: parseFloat(form.rentalPrice.value),
-                                availableForPurchase: form.availableForPurchase.value === 'yes',
-                                availableForRental: form.availableForRental.value === 'yes',
-                                imageUrl: form.imageUrl.value,
+                                title: form.title?.value,
+                                author: { username: user.username, id: user.id },
+                                publishedDate: form.publicationDate?.value,
+                                description: form.description?.value,
+                                price: parseFloat(form.price?.value),
+                                rentalPrice: parseFloat(form.rentalPrice?.value),
+                                availableForPurchase: form.availableForPurchase?.value === "yes",
+                                availableForRental: form.availableForRental?.value === "yes",
+                                imageUrl: form.imageUrl?.value,
                             };
-                            console.log("Form submitted with book data:", bookData);
                             saveBook(bookData);
                         }}
-                        className="grid gap-4 py-4"
+                        className="flex flex-col gap-4 py-4"
                     >
-                        <div className="grid items-center grid-cols-4 gap-4">
-                            <Label htmlFor="title" className="text-right">
-                                Title
-                            </Label>
-                            <Input id="title" name="title" defaultValue={currentBook?.title} required />
+                        <div className="flex items-center gap-4">
+                            <Label htmlFor="title" className="w-1/3 text-right">Title</Label>
+                            <Input id="title" name="title" defaultValue={currentBook?.title} required className="flex-1" />
                         </div>
-                        <div className="grid items-center grid-cols-4 gap-4">
-                            <Label htmlFor="author" className="text-right">
-                                Author
-                            </Label>
-                            <Input
-                                id="author"
-                                name="author"
-                                value={user.username}
-                                disabled
-                                className="bg-muted/40"
-                            />
-                        </div>
-                        <div className="grid items-center grid-cols-4 gap-4">
-                            <Label htmlFor="publicationDate" className="text-right">
-                                Publication Date
-                            </Label>
+                        <div className="flex items-center gap-4">
+                            <Label htmlFor="publicationDate" className="w-1/3 text-right">Publication Date</Label>
                             <Input
                                 id="publicationDate"
                                 name="publicationDate"
                                 type="date"
-                                defaultValue={currentBook?.publicationDate ? new Date(currentBook.publicationDate).toISOString().split('T')[0] : ''}
+                                defaultValue={currentBook?.publishedDate ? new Date(currentBook.publishedDate).toISOString().split("T")[0] : ""}
                                 required
+                                className="flex-1"
                             />
                         </div>
-                        <div className="grid items-center grid-cols-4 gap-4">
-                            <Label htmlFor="description" className="text-right">
-                                Description
-                            </Label>
-                            <Textarea id="description" name="description" defaultValue={currentBook?.description} required />
+                        <div className="flex items-center gap-4">
+                            <Label htmlFor="description" className="w-1/3 text-right">Description</Label>
+                            <Textarea
+                                id="description"
+                                name="description"
+                                defaultValue={currentBook?.description}
+                                required
+                                className="flex-1"
+                            />
                         </div>
-                        <div className="grid items-center grid-cols-4 gap-4">
-                            <Label htmlFor="price" className="text-right">
-                                Price ($)
-                            </Label>
-                            <Input id="price" name="price" type="number" step="0.01" defaultValue={currentBook?.price} required />
+                        <div className="flex items-center gap-4">
+                            <Label htmlFor="price" className="w-1/3 text-right">Price ($)</Label>
+                            <Input
+                                id="price"
+                                name="price"
+                                type="number"
+                                step="0.01"
+                                defaultValue={currentBook?.price}
+                                required
+                                className="flex-1"
+                            />
                         </div>
-                        <div className="grid items-center grid-cols-4 gap-4">
-                            <Label htmlFor="rentalPrice" className="text-right">
-                                Rental Price ($)
-                            </Label>
-                            <Input id="rentalPrice" name="rentalPrice" type="number" step="0.01" defaultValue={currentBook?.rentalPrice} required />
+                        <div className="flex items-center gap-4">
+                            <Label htmlFor="rentalPrice" className="w-1/3 text-right">Rental Price ($)</Label>
+                            <Input
+                                id="rentalPrice"
+                                name="rentalPrice"
+                                type="number"
+                                step="0.01"
+                                defaultValue={currentBook?.rentalPrice}
+                                required
+                                className="flex-1"
+                            />
                         </div>
-                        <div className="grid items-center grid-cols-4 gap-4">
-                            <Label className="text-right">Available for Purchase</Label>
-                            <Select defaultValue={currentBook?.availableForPurchase ? 'yes' : 'no'} name="availableForPurchase">
+                        <div className="flex items-center gap-4">
+                            <Label className="w-1/3 text-right">Available for Purchase</Label>
+                            <Select
+                                defaultValue={currentBook?.availableForPurchase ? "yes" : "no"}
+                                name="availableForPurchase"
+                                className="flex-1"
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select" />
                                 </SelectTrigger>
@@ -281,9 +322,13 @@ export default function BookManagement() {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="grid items-center grid-cols-4 gap-4">
-                            <Label className="text-right">Available for Rental</Label>
-                            <Select defaultValue={currentBook?.availableForRental ? 'yes' : 'no'} name="availableForRental">
+                        <div className="flex items-center gap-4">
+                            <Label className="w-1/3 text-right">Available for Rental</Label>
+                            <Select
+                                defaultValue={currentBook?.availableForRental ? "yes" : "no"}
+                                name="availableForRental"
+                                className="flex-1"
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select" />
                                 </SelectTrigger>
@@ -293,14 +338,20 @@ export default function BookManagement() {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="grid items-center grid-cols-4 gap-4">
-                            <Label htmlFor="imageUrl" className="text-right">
-                                Cover Image URL
-                            </Label>
-                            <Input id="imageUrl" name="imageUrl" defaultValue={currentBook?.imageUrl} required />
+                        <div className="flex items-center gap-4">
+                            <Label htmlFor="imageUrl" className="w-1/3 text-right">Cover Image URL</Label>
+                            <Input
+                                id="imageUrl"
+                                name="imageUrl"
+                                defaultValue={currentBook?.imageUrl}
+                                required
+                                className="flex-1"
+                            />
                         </div>
                         <DialogFooter>
-                            <Button type="submit">{currentBook ? "Save Changes" : "Add Book"}</Button>
+                            <Button type="submit">
+                                {currentBook ? "Save Changes" : "Add Book"}
+                            </Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
@@ -309,7 +360,6 @@ export default function BookManagement() {
     );
 }
 
-// Icon Components (CheckIcon and XIcon are used for displaying availability status)
 function CheckIcon(props) {
     return (
         <svg

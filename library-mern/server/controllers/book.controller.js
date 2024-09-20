@@ -25,7 +25,7 @@ exports.createBook = asyncHandler(async (req, res) => {
 
 exports.getAllBooks = asyncHandler(async (req, res) => {
     try {
-        const { page = 1, limit = 5, searchTerm = "" } = req.query; 
+        const { page = 1, limit = 5, searchTerm = "" } = req.query;
 
         const pageNum = parseInt(page, 10);
         const limitNum = parseInt(limit, 10);
@@ -35,8 +35,8 @@ exports.getAllBooks = asyncHandler(async (req, res) => {
         if (searchTerm) {
             searchFilter = {
                 $or: [
-                    { title: { $regex: searchTerm, $options: "i" } }, 
-                    { description: { $regex: searchTerm, $options: "i" } }, 
+                    { title: { $regex: searchTerm, $options: "i" } },
+                    { description: { $regex: searchTerm, $options: "i" } },
                     {
                         author: {
                             $in: await User.find({ username: { $regex: searchTerm, $options: "i" } }).select("_id"),
@@ -51,7 +51,7 @@ exports.getAllBooks = asyncHandler(async (req, res) => {
             .skip(skip)
             .limit(limitNum);
 
-        const totalBooks = await Book.countDocuments(searchFilter); 
+        const totalBooks = await Book.countDocuments(searchFilter);
 
         res.status(200).json({
             books,
@@ -68,13 +68,21 @@ exports.getAllBooks = asyncHandler(async (req, res) => {
 exports.getBookById = asyncHandler(async (req, res) => {
     try {
         const book = await Book.findById(req.params.id)
-            .populate("author", "username")
+            .populate("author", "username") // Populate the author with username
             .populate({
                 path: 'comments',
                 populate: {
                     path: 'author',
                     select: 'username'
                 }
+            })
+            .populate({
+                path: 'purchasers.user', // Populate purchasers field
+                select: 'username purchaseDate' // Populate purchasers and select the username and purchase date
+            })
+            .populate({
+                path: 'renters.user', // Populate renters field
+                select: 'username rentalDate rentalEndDate' // Populate renters and select the username and rental date details
             });
 
         if (!book) {
@@ -86,6 +94,7 @@ exports.getBookById = asyncHandler(async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
 
 
 exports.updateBookById = asyncHandler(async (req, res) => {
@@ -192,7 +201,7 @@ exports.getOwnedBooks = asyncHandler(async (req, res) => {
         const user = await User.findById(req.user._id)
             .populate({
                 path: 'ownedBooks.book',
-                select: 'title price author description publishedDate availableForPurchase availableForRental createdAt updatedAt', 
+                select: 'title price author description publishedDate availableForPurchase availableForRental createdAt updatedAt',
                 populate: {
                     path: 'author',
                     select: 'username'
@@ -200,7 +209,7 @@ exports.getOwnedBooks = asyncHandler(async (req, res) => {
             })
             .populate({
                 path: 'rentedBooks.book',
-                select: 'title price rentalPrice author description publishedDate availableForPurchase availableForRental createdAt updatedAt', 
+                select: 'title price rentalPrice author description publishedDate availableForPurchase availableForRental createdAt updatedAt',
                 populate: {
                     path: 'author',
                     select: 'username'
@@ -227,8 +236,8 @@ exports.getOwnedBooks = asyncHandler(async (req, res) => {
             purchaseDate: entry.purchaseDate,
             type: 'Purchased',
             paymentId: entry.paymentId,
-            createdAt: entry.book.createdAt || null,  // Optional field
-            updatedAt: entry.book.updatedAt || null   // Optional field
+            createdAt: entry.book.createdAt || null,  
+            updatedAt: entry.book.updatedAt || null   
         }));
 
         const rentedBooks = user.rentedBooks.map((entry) => ({
@@ -244,8 +253,8 @@ exports.getOwnedBooks = asyncHandler(async (req, res) => {
             rentalEndDate: entry.rentalEndDate,
             type: 'Rented',
             paymentId: entry.paymentId,
-            createdAt: entry.book.createdAt || null,  // Optional field
-            updatedAt: entry.book.updatedAt || null   // Optional field
+            createdAt: entry.book.createdAt || null,  
+            updatedAt: entry.book.updatedAt || null   
         }));
 
         res.status(200).json({
@@ -259,7 +268,6 @@ exports.getOwnedBooks = asyncHandler(async (req, res) => {
 });
 
 
-
 exports.getBooksByAuthor = asyncHandler(async (req, res) => {
     try {
         const { authorId } = req.params;
@@ -269,8 +277,16 @@ exports.getBooksByAuthor = asyncHandler(async (req, res) => {
         }
 
         const books = await Book.find({ author: authorId })
-            .select('title description publishedDate price rentalPrice availableForPurchase availableForRental')
-            .populate('author', 'username');
+            .select('title description publishedDate price rentalPrice availableForPurchase availableForRental') 
+            .populate('author', 'username')
+            .populate({
+                path: 'purchasers.user', 
+                select: 'username' 
+            })
+            .populate({
+                path: 'renters.user', 
+                select: 'username'
+            });
 
         if (books.length === 0) {
             return res.status(404).json({ message: 'No books found for this author' });
@@ -282,6 +298,7 @@ exports.getBooksByAuthor = asyncHandler(async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
 
 exports.getCommentByBookId = asyncHandler(async (req, res) => {
     exports.getCommentsByBookId = asyncHandler(async (req, res) => {

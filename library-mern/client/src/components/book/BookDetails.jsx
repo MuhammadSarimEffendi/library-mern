@@ -50,10 +50,9 @@ const BookDetails = () => {
         }
     }, [dispatch, bookId]);
 
-    // Effect to handle payment session URL
     useEffect(() => {
         if (sessionUrl) {
-            window.location.href = sessionUrl; // Redirect user to the Stripe Checkout page
+            window.location.href = sessionUrl; 
         }
     }, [sessionUrl]);
 

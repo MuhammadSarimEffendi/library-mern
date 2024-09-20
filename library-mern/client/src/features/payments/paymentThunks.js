@@ -1,7 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '@/api/axiosInstance';
 
-// Create a Stripe checkout session
 export const createCheckoutSession = createAsyncThunk(
     'payments/createCheckoutSession',
     async ({ bookId, type }, { rejectWithValue }) => {
@@ -17,7 +16,6 @@ export const createCheckoutSession = createAsyncThunk(
     }
 );
 
-// Confirm payment after the Stripe session completes
 export const confirmPayment = createAsyncThunk(
     'payments/confirmPayment',
     async (sessionId, { rejectWithValue }) => {
