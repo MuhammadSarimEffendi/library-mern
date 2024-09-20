@@ -1,30 +1,15 @@
-import { createAsyncThunk } from '@reduxjs/toolkit';
-import axiosInstance from '@/api/axiosInstance'; 
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axiosInstance from '@/api/axiosInstance';
 
-// // Fetch comments by book ID
-export const fetchCommentsByBookId = createAsyncThunk(
-    "comments/fetchCommentsByBookId",
-    async (bookId, { rejectWithValue }) => {
+// Fetch all comments
+export const fetchAllComments = createAsyncThunk(
+    "comments/fetchAllComments",
+    async (_, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.get(`/comment/book/${bookId}`);
+            const response = await axiosInstance.get(`/comment`); // Assuming /comment endpoint returns all comments
             return response.data;
         } catch (error) {
-            return rejectWithValue(error.response?.data || "Error fetching comments");
-        }
-    }
-);
-
-// Fetch a comment by ID
-export const fetchCommentById = createAsyncThunk(
-    "comments/fetchCommentById",
-    async (commentId, { rejectWithValue }) => {
-        try {
-            const response = await axiosInstance.get(`/comment/${commentId}`);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(
-                error.response?.data || "Error fetching comment details"
-            );
+            return rejectWithValue(error.response?.data || "Error fetching all comments");
         }
     }
 );
@@ -64,21 +49,6 @@ export const deleteComment = createAsyncThunk(
             return commentId; 
         } catch (error) {
             return rejectWithValue(error.response?.data || "Error deleting comment");
-        }
-    }
-);
-
-// Fetch comments by a specific author
-export const fetchCommentsByAuthor = createAsyncThunk(
-    "comments/fetchCommentsByAuthor",
-    async (authorId, { rejectWithValue }) => {
-        try {
-            const response = await axiosInstance.get(`/comment/author/${authorId}`);
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(
-                error.response?.data || "Error fetching comments by author"
-            );
         }
     }
 );

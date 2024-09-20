@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -14,18 +15,16 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
-import useComments from "@/hooks/useComments"; 
+import {
+    fetchAllComments,
+    addComment as addCommentThunk,
+    updateComment as updateCommentThunk,
+    deleteComment as deleteCommentThunk,
+} from "@/features/comments/commentThunks";
 
 export default function ManageComments() {
-    const {
-        comments,
-        loading,
-        error,
-        addComment,
-        editComment,
-        deleteComment,
-        reloadComments,
-    } = useComments();
+    const dispatch = useDispatch();
+    const { items: comments, loading, error } = useSelector((state) => state.comments);
 
     const [currentPage, setCurrentPage] = useState(1);
     const commentsPerPage = 5;
@@ -45,9 +44,13 @@ export default function ManageComments() {
     });
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+    // Fetch all comments on component mount
+    useEffect(() => {
+        dispatch(fetchAllComments()); // Fetch all comments
+    }, [dispatch]);
+
     const handleEditComment = (comment) => {
-        const commentId = comment._id;
-        setEditingComment(commentId);
+        setEditingComment(comment._id);
         setNewComment({
             bookId: comment.book._id,
             description: comment.description,
@@ -65,43 +68,26 @@ export default function ManageComments() {
     };
 
     const handleSaveComment = async () => {
-        console.log("Saving comment. Editing comment:", editingComment);
-
         if (editingComment) {
-            console.log("Editing existing comment with ID:", editingComment);
-            await editComment(editingComment, {
-                description: newComment.description,
-            });
-
-            const updatedComments = comments.map((comment) =>
-                comment._id === editingComment ? { ...comment, description: newComment.description } : comment
-            );
-            setComments(updatedComments);
+            // Editing an existing comment
+            await dispatch(updateCommentThunk({ commentId: editingComment, commentData: { description: newComment.description } }));
         } else {
-            console.log("Adding new comment:", newComment);
-            const addedComment = await addComment(newComment);
-            setComments([...comments, addedComment]);
+            // Adding a new comment
+            await dispatch(addCommentThunk({ bookId: newComment.bookId, commentData: newComment }));
         }
 
-        
+        // Reset the form and close the dialog
         setIsDialogOpen(false);
         setEditingComment(null);
         setNewComment({
             bookId: "",
             description: "",
         });
-
-        console.log("Comment saved.");
     };
 
     const handleDeleteComment = async (id) => {
-        await deleteComment(id);
-        setComments(comments.filter((comment) => comment._id !== id));
+        await dispatch(deleteCommentThunk(id));
     };
-
-    useEffect(() => {
-        reloadComments(); 
-    }, []);
 
     if (loading) return <div>Loading comments...</div>;
     if (error) return <div>Error: {error}</div>;

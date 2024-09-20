@@ -1,49 +1,32 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { 
-    fetchCommentsByBookId, 
-    fetchCommentById, 
+    fetchAllComments,
     addComment, 
     updateComment, 
     deleteComment, 
-    fetchCommentsByAuthor 
 } from '@/features/comments/commentThunks';
-
 const initialState = {
     items: [],              
     loading: false,         
     error: null,            
 };
 
-const commentsSlice = createSlice({
+const commentSlice = createSlice({
     name: 'comments',
     initialState,
     reducers: {},
     extraReducers: (builder) => {
         builder
-            // Fetch comments by book ID
-            // .addCase(fetchCommentsByBookId.pending, (state) => {
-            //     state.loading = true;
-            //     state.error = null;
-            // })
-            // .addCase(fetchCommentsByBookId.fulfilled, (state, action) => {
-            //     state.items = action.payload;
-            //     state.loading = false;
-            // })
-            // .addCase(fetchCommentsByBookId.rejected, (state, action) => {
-            //     state.error = action.payload || action.error.message;
-            //     state.loading = false;
-            // })
-
-            // Fetch comment by ID
-            .addCase(fetchCommentById.pending, (state) => {
+            // Fetch all comments
+            .addCase(fetchAllComments.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(fetchCommentById.fulfilled, (state, action) => {
+            .addCase(fetchAllComments.fulfilled, (state, action) => {
+                state.items = action.payload;
                 state.loading = false;
-                // Update specific comment in the state
             })
-            .addCase(fetchCommentById.rejected, (state, action) => {
+            .addCase(fetchAllComments.rejected, (state, action) => {
                 state.error = action.payload || action.error.message;
                 state.loading = false;
             })
@@ -68,22 +51,8 @@ const commentsSlice = createSlice({
                 state.items = state.items.filter(
                     (comment) => comment.id !== action.payload && comment._id !== action.payload
                 );
-            })
-
-            // Fetch comments by author
-            .addCase(fetchCommentsByAuthor.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
-            .addCase(fetchCommentsByAuthor.fulfilled, (state, action) => {
-                state.items = action.payload;
-                state.loading = false;
-            })
-            .addCase(fetchCommentsByAuthor.rejected, (state, action) => {
-                state.error = action.payload || action.error.message;
-                state.loading = false;
             });
     },
 });
 
-export default commentsSlice.reducer;
+export default commentSlice.reducer;

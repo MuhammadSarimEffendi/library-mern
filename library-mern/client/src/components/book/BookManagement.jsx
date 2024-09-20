@@ -20,28 +20,24 @@ export default function BookManagement() {
     const user = useSelector((state) => state.auth.user);
     const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
-    // Local state for UI interactions
     const [showModal, setShowModal] = useState(false);
     const [bookToDelete, setBookToDelete] = useState(null);
     const [showBookForm, setShowBookForm] = useState(false);
     const [currentBook, setCurrentBook] = useState(null);
 
-    // Fetch the books authored by the current user
     useEffect(() => {
         if (isAuthenticated && user?.id) {  // Fix: use user.id
             console.log("User is authenticated, fetching books for user ID:", user.id);
-            dispatch(fetchBooksByAuthor(user.id));  // Fix: pass user.id to fetchBooksByAuthor
+            dispatch(fetchBooksByAuthor(user.id)); 
         } else {
             console.log("User is not authenticated or missing user.id");
         }
-    }, [dispatch, isAuthenticated, user?.id]); // Fix: dependency on user.id
+    }, [dispatch, isAuthenticated, user?.id]); 
 
-    // Log the books data whenever it changes
     useEffect(() => {
         console.log("Authored Books state updated:", authoredBooks);
     }, [authoredBooks]);
 
-    // Log loading and error states
     useEffect(() => {
         if (loading) {
             console.log("Loading books...");

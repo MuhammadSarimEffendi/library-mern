@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { jwtDecode } from "jwt-decode";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"; 
 import { Checkbox } from "@/components/ui/checkbox"; 
-import { fetchUsers, fetchUserById, createUser, updateUser, deleteUser } from "@/api/adminApi";
+import { fetchUsers, fetchUserById, createUser, updateUser, deleteUser } from '@/features/users/userThunks';
+import { clearSelectedUser } from '@/features/users/userSlice';
+import { jwtDecode } from "jwt-decode";
 
 const roleOptions = ["admin", "author", "reader"];
 
@@ -22,86 +24,70 @@ const generateRandomPassword = (length = 12) => {
 };
 
 export default function UserManagement() {
-    const [users, setUsers] = useState([]);
+    const dispatch = useDispatch();
+    const { items: users, selectedUser, loading, error } = useSelector((state) => state.users);
+    
     const [newUser, setNewUser] = useState(null);
     const [editingUser, setEditingUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [userRoles, setUserRoles] = useState([]);
     const [currentUserId, setCurrentUserId] = useState(null);
 
+    // Fetch all users on mount
     useEffect(() => {
-        const loadUsers = async () => {
-            try {
-                const token = localStorage.getItem("authToken");
-                if (token) {
-                    const decodedToken = jwtDecode(token);
-                    if (decodedToken?.role?.includes("admin")) {
-                        const fetchedUsers = await fetchUsers();
-                        setUsers(fetchedUsers);
-                        setUserRoles(decodedToken?.role || []);
-                        setCurrentUserId(decodedToken?._id);
-                    }
-                } else {
-                    setError("No valid token found");
-                }
-            } catch (error) {
-                setError("Failed to load users.");
-            } finally {
-                setLoading(false);
+        dispatch(fetchUsers());
+    }, [dispatch]);
+
+    useEffect(() => {
+        const token = localStorage.getItem("authToken");
+        if (token) {
+            const decodedToken = jwtDecode(token);
+            if (decodedToken?.role?.includes("admin")) {
+                setUserRoles(decodedToken?.role || []);
+                setCurrentUserId(decodedToken?._id);
             }
-        };
-        loadUsers();
+        }
     }, []);
 
     const handleCreateUser = async () => {
         try {
-            const createdUser = await createUser({
+            await dispatch(createUser({
                 ...newUser,
                 role: newUser.role,
-                password: newUser.password, 
-            });
-            setUsers([...users, createdUser]);
+                password: newUser.password,
+            }));
             setNewUser(null);
         } catch (error) {
-            console.log(error);
-            setError("Failed to create user.");
+            console.error("Failed to create user:", error);
         }
     };
 
     const handleUpdateUser = async () => {
         try {
-            const updatedUser = await updateUser(editingUser._id, {
-                ...editingUser,
-                role: editingUser.role, 
-            });
-            setUsers(users.map((user) => (user._id === updatedUser._id ? updatedUser : user)));
+            await dispatch(updateUser({ id: editingUser._id, user: editingUser }));
             setEditingUser(null);
         } catch (error) {
-            setError("Failed to update user.");
+            console.error("Failed to update user:", error);
         }
     };
 
     const handleDeleteUser = async (userId) => {
         try {
-            await deleteUser(userId);
-            setUsers(users.filter((user) => user._id !== userId));
+            await dispatch(deleteUser(userId));
         } catch (error) {
-            setError("Failed to delete user.");
+            console.error("Failed to delete user:", error);
         }
     };
 
     const handleEditUser = async (userId) => {
         try {
-            const user = await fetchUserById(userId);
-            setEditingUser(user);
+            await dispatch(fetchUserById(userId));
+            setEditingUser(selectedUser);
         } catch (error) {
-            setError("Failed to fetch user details.");
+            console.error("Failed to fetch user details:", error);
         }
     };
 
     const openAddUserModal = () => {
-
         const randomPassword = generateRandomPassword();
         setNewUser({
             username: "",
@@ -173,6 +159,7 @@ export default function UserManagement() {
                 )}
             </div>
 
+            {/* Edit User Modal */}
             {editingUser && (
                 <Sheet>
                     <SheetTrigger asChild>
@@ -234,6 +221,7 @@ export default function UserManagement() {
                 </Sheet>
             )}
 
+            {/* Add New User Modal */}
             {newUser && (
                 <Sheet>
                     <SheetTrigger asChild>
@@ -264,7 +252,7 @@ export default function UserManagement() {
                                         <Input
                                             id="password"
                                             type="text"
-                                            value={newUser.password} 
+                                            value={newUser.password}
                                             readOnly
                                         />
                                     </div>
