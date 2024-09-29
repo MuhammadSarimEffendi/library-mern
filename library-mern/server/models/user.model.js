@@ -22,6 +22,10 @@ const userSchema = new mongoose.Schema({
         default: ['reader'],
         required: true,
     },
+    avatar: {
+        type: String,
+        default: null
+    },
     ownedBooks: [{
         book: { type: mongoose.Schema.Types.ObjectId, ref: 'Book' },
         paymentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Payment' }  

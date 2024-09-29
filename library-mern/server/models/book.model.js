@@ -34,6 +34,10 @@ const BookSchema = new Schema({
         type: Boolean,
         default: false
     },
+    image: { // New field to store the image URL
+        url: { type: String, default: null },
+        public_id: { type: String, default: null }
+    },
     purchasers: [
         {
             user: {
@@ -73,7 +77,6 @@ const BookSchema = new Schema({
             ref: 'Comment'
         }
     ]
-
 }, {
     timestamps: true
 });

@@ -1,46 +1,104 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import ManageBooks from "./ManageBooks";
+import ManageComments from "./ManageComments";
+import ManageUser from "./ManageUser";
 
 export default function Sidebar() {
+    const [isOpen, setIsOpen] = useState(true); // State to control sidebar visibility
+    const [activeComponent, setActiveComponent] = useState("Users"); // State to control the displayed component
+
+    const toggleSidebar = () => {
+        setIsOpen(!isOpen);
+    };
+
+    const renderContent = () => {
+        switch (activeComponent) {
+            case "Users":
+                return <ManageUser />;
+            case "Books":
+                return <ManageBooks />;
+            case "Comments":
+                return <ManageComments />;
+            default:
+                return <div>Select an option from the sidebar.</div>;
+        }
+    };
+
     return (
-        <aside className="w-64 bg-[#1f2937] text-white h-screen flex-shrink-0 fixed top-0 left-0 z-10">
-            <div className="flex h-16 items-center justify-between px-6 bg-[#111827]">
-                <Link to="/admin" className="flex items-center gap-2 font-semibold">
-                    <BookIcon className="h-6 w-6" />
-                    <span className="text-lg">Admin Dashboard</span>
-                </Link>
-                <Button variant="ghost" size="icon" className="lg:hidden">
-                    <XIcon className="h-5 w-5" />
-                    <span className="sr-only">Close sidebar</span>
-                </Button>
+        <div className="flex h-full"> {/* Ensures full height usage */}
+            {/* Sidebar */}
+            <aside
+                className={`${
+                    isOpen ? "w-64" : "w-16"
+                } bg-[#1f2937] text-white h-auto flex-shrink-0 transition-all duration-300`}
+            >
+                {/* Sidebar Header */}
+                <div className="flex h-16 items-center justify-between px-6 bg-[#111827]">
+                    {isOpen && <span className="text-lg font-bold">Library Management</span>}
+                    <Button variant="ghost" size="icon" onClick={toggleSidebar}>
+                        {isOpen ? <XIcon className="h-5 w-5" /> : <HamburgerIcon className="h-5 w-5" />}
+                        <span className="sr-only">{isOpen ? "Close sidebar" : "Open sidebar"}</span>
+                    </Button>
+                </div>
+
+                {/* Sidebar Navigation */}
+                <nav className="flex flex-col space-y-1 px-4 py-6 overflow-y-auto h-full">
+                    <button
+                        onClick={() => setActiveComponent("Users")}
+                        className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-[#374151] ${
+                            activeComponent === "Users" ? "bg-[#374151]" : ""
+                        }`}
+                    >
+                        <UsersIcon className="h-5 w-5" />
+                        {isOpen && <span>Manage Users</span>}
+                    </button>
+                    <button
+                        onClick={() => setActiveComponent("Books")}
+                        className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-[#374151] ${
+                            activeComponent === "Books" ? "bg-[#374151]" : ""
+                        }`}
+                    >
+                        <BookIcon className="h-5 w-5" />
+                        {isOpen && <span>Manage Books</span>}
+                    </button>
+                    <button
+                        onClick={() => setActiveComponent("Comments")}
+                        className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-[#374151] ${
+                            activeComponent === "Comments" ? "bg-[#374151]" : ""
+                        }`}
+                    >
+                        <MessageCircleIcon className="h-5 w-5" />
+                        {isOpen && <span>Manage Comments</span>}
+                    </button>
+                </nav>
+            </aside>
+
+            {/* Main Content Area */}
+            <div className={`flex-1 ml-${isOpen ? '64' : '16'} transition-all duration-300`}>
+                {/* Header at the top of the main content */}
+                <header className="flex items-center justify-between bg-[#1f2937] text-white p-4 shadow">
+                    <h1 className="text-xl font-bold">Admin Panel</h1>
+                    <div className="flex items-center space-x-4">
+                        <span>Welcome, Admin!</span>
+                        <Button variant="ghost" className="bg-gray-200 text-gray-800">
+                            Logout
+                        </Button>
+                    </div>
+                </header>
+
+                {/* Render selected content */}
+                <main className="bg-white rounded shadow overflow-y-auto h-[calc(100vh-112px)]"> 
+                    {/* Adjust height to avoid overlap with footer */}
+                    {renderContent()}
+                </main>
             </div>
-            <nav className="flex flex-col space-y-1 px-4 py-6 overflow-y-auto h-full">
-                <Link
-                    to="/admin/users"
-                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-[#374151] hover:text-white"
-                >
-                    <UsersIcon className="h-5 w-5" />
-                    Users
-                </Link>
-                <Link
-                    to="/admin/books"
-                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-[#374151] hover:text-white"
-                >
-                    <BookIcon className="h-5 w-5" />
-                    Books
-                </Link>
-                <Link
-                    to="/admin/comments"
-                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-[#374151] hover:text-white"
-                >
-                    <MessageCircleIcon className="h-5 w-5" />
-                    Comments
-                </Link>
-            </nav>
-        </aside>
+        </div>
     );
 }
 
+
+// Icons
 function BookIcon(props) {
     return (
         <svg
@@ -117,6 +175,25 @@ function XIcon(props) {
         >
             <path d="M18 6 6 18" />
             <path d="m6 6 12 12" />
+        </svg>
+    );
+}
+
+function HamburgerIcon(props) {
+    return (
+        <svg
+            {...props}
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M3 12h18M3 6h18M3 18h18" />
         </svg>
     );
 }

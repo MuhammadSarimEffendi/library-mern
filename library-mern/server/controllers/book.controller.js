@@ -1,32 +1,38 @@
 const asyncHandler = require("express-async-handler");
 const Book = require("../models/book.model");
 const User = require("../models/user.model");
+const cloudinary = require('../config/cloudinaryConfig');
+const { uploadSingleToCloudinary } = require('../middlewares/uploadFiles');
 
-exports.createBook = asyncHandler(async (req, res) => {
-    try {
-        const { title, description, publishedDate, price, rentalPrice, availableForPurchase, availableForRental } = req.body;
-        const newBook = new Book({
-            title,
-            description,
-            publishedDate,
-            price,
-            rentalPrice,
-            availableForPurchase,
-            availableForRental,
-            author: req.user._id
-        });
-        await newBook.save();
-        res.status(201).json(newBook);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+exports.createBook = [
+    uploadSingleToCloudinary, // Middleware for image upload
+    asyncHandler(async (req, res) => {
+        try {
+            const { title, description, publishedDate, price, rentalPrice, availableForPurchase, availableForRental } = req.body;
 
+            const newBook = new Book({
+                title,
+                description,
+                publishedDate,
+                price,
+                rentalPrice,
+                availableForPurchase,
+                availableForRental,
+                author: req.user._id,
+                image: req.uploadedImage ? { url: req.uploadedImage.url, public_id: req.uploadedImage.id } : null // Include uploaded image
+            });
+
+            await newBook.save();
+            res.status(201).json(newBook);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    })
+];
 
 exports.getAllBooks = asyncHandler(async (req, res) => {
     try {
         const { page = 1, limit = 5, searchTerm = "" } = req.query;
-
         const pageNum = parseInt(page, 10);
         const limitNum = parseInt(limit, 10);
         const skip = (pageNum - 1) * limitNum;
@@ -68,7 +74,7 @@ exports.getAllBooks = asyncHandler(async (req, res) => {
 exports.getBookById = asyncHandler(async (req, res) => {
     try {
         const book = await Book.findById(req.params.id)
-            .populate("author", "username") // Populate the author with username
+            .populate("author", "username")
             .populate({
                 path: 'comments',
                 populate: {
@@ -77,12 +83,12 @@ exports.getBookById = asyncHandler(async (req, res) => {
                 }
             })
             .populate({
-                path: 'purchasers.user', // Populate purchasers field
-                select: 'username purchaseDate' // Populate purchasers and select the username and purchase date
+                path: 'purchasers.user',
+                select: 'username purchaseDate'
             })
             .populate({
-                path: 'renters.user', // Populate renters field
-                select: 'username rentalDate rentalEndDate' // Populate renters and select the username and rental date details
+                path: 'renters.user',
+                select: 'username rentalDate rentalEndDate'
             });
 
         if (!book) {
@@ -95,35 +101,46 @@ exports.getBookById = asyncHandler(async (req, res) => {
     }
 });
 
+exports.updateBookById = [
+    uploadSingleToCloudinary, // Middleware for image upload
+    asyncHandler(async (req, res) => {
+        try {
+            const { title, description, publishedDate, price, rentalPrice, availableForPurchase, availableForRental } = req.body;
+            const book = await Book.findById(req.params.id);
 
-
-exports.updateBookById = asyncHandler(async (req, res) => {
-    try {
-        const { title, description, publishedDate, price, rentalPrice, availableForPurchase, availableForRental } = req.body;
-        const book = await Book.findById(req.params.id);
-
-        if (!book) {
-            return res.status(404).json({ message: "Book not found" });
-        }
-
-        if (req.user.role.includes('admin') || book.author.toString() === req.user._id.toString()) {
-            const updateFields = { title, description, publishedDate, price, rentalPrice, availableForPurchase, availableForRental };
-
-            if (req.user.role.includes('admin')) {
-                if ('author' in req.body) {
-                    delete updateFields.author;
-                }
+            if (!book) {
+                return res.status(404).json({ message: "Book not found" });
             }
 
-            const updatedBook = await Book.findByIdAndUpdate(req.params.id, updateFields, { new: true });
-            res.json(updatedBook);
-        } else {
-            res.status(403).json({ error: "Access denied" });
+            if (req.user.role.includes('admin') || book.author.toString() === req.user._id.toString()) {
+                const updateFields = {
+                    title,
+                    description,
+                    publishedDate,
+                    price,
+                    rentalPrice,
+                    availableForPurchase,
+                    availableForRental,
+                };
+
+                // Add the new image if uploaded, and delete the old one from Cloudinary
+                if (req.uploadedImage) {
+                    if (book.image && book.image.public_id) {
+                        await cloudinary.uploader.destroy(book.image.public_id);
+                    }
+                    updateFields.image = { url: req.uploadedImage.url, public_id: req.uploadedImage.id };
+                }
+
+                const updatedBook = await Book.findByIdAndUpdate(req.params.id, updateFields, { new: true });
+                res.json(updatedBook);
+            } else {
+                res.status(403).json({ error: "Access denied" });
+            }
+        } catch (error) {
+            res.status(500).json({ error: error.message });
         }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+    })
+];
 
 exports.deleteBookById = asyncHandler(async (req, res) => {
     try {
@@ -134,6 +151,10 @@ exports.deleteBookById = asyncHandler(async (req, res) => {
         }
 
         if (req.user.role.includes('admin') || book.author.toString() === req.user._id.toString()) {
+            if (book.image && book.image.public_id) {
+                // Delete the image from Cloudinary
+                await cloudinary.uploader.destroy(book.image.public_id);
+            }
             await Book.findByIdAndDelete(req.params.id);
             res.json({ message: "Book deleted successfully" });
         } else {

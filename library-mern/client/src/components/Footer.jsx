@@ -2,24 +2,24 @@ import { Link } from "react-router-dom";
 
 export default function Footer() {
     return (
-        <footer className="bg-background py-8 border-t mt-auto w-full">
-            <div className="container flex flex-col md:flex-row items-center justify-between gap-6">
+        <footer className="bg-[#1f2937] text-white py-4 w-full mt-auto">
+            <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-6 px-4">
                 <Link to="/" className="flex items-center gap-2">
                     <BookIcon className="w-6 h-6 text-primary" />
                     <span className="text-lg font-semibold">Library</span>
                 </Link>
                 <nav className="flex items-center gap-6">
-                    <Link to="/book-list" className="text-muted-foreground hover:text-foreground">
+                    <Link to="/book-list" className="text-gray-400 hover:text-white">
                         Books
                     </Link>
-                    <Link to="/members" className="text-muted-foreground hover:text-foreground">
+                    <Link to="/members" className="text-gray-400 hover:text-white">
                         Members
                     </Link>
-                    <Link to="/events" className="text-muted-foreground hover:text-foreground">
+                    <Link to="/events" className="text-gray-400 hover:text-white">
                         Events
                     </Link>
                 </nav>
-                <p className="text-xs text-muted-foreground">&copy; 2024 Library Management System. All rights reserved.</p>
+                <p className="text-xs text-gray-400">&copy; 2024 Library Management System. All rights reserved.</p>
             </div>
         </footer>
     );

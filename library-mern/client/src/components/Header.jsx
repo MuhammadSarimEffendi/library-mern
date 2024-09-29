@@ -77,7 +77,7 @@ export default function Header() {
                             </button>
                             {isProfileOpen && (
                                 <div className="absolute right-0 mt-2 bg-white text-black rounded shadow-lg">
-                                    <Link to="/account-settings" className="block px-4 py-2 hover:bg-gray-100">Account Settings</Link>
+                                    <Link to="/profile" className="block px-4 py-2 hover:bg-gray-100">Account Settings</Link>
                                     <button onClick={handleLogout} className="block w-full px-4 py-2 text-left hover:bg-gray-100">Logout</button>
                                 </div>
                             )}
